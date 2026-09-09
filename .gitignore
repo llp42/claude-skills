@@ -1,0 +1,18 @@
+# Only skills, agents, and commands belong here. Everything else Claude Code
+# writes into ~/.claude is local state or secrets and must never be committed.
+.credentials.json
+history.jsonl
+.last-cleanup
+projects/
+sessions/
+session-env/
+shell-snapshots/
+paste-cache/
+file-history/
+backups/
+cache/
+plans/
+tasks/
+plugins/
+settings.local.json
+*.bak
