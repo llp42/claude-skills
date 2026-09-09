@@ -8,11 +8,9 @@ agent: general-purpose
 background: false
 ---
 
-# deps-doctor
-
 Audit project dependencies for outdated versions and known vulnerabilities. Report only — never modify files, install packages, or run upgrade commands.
 
-## Steps
+Steps:
 
 1. **Detect ecosystems** present in the project root by checking for these files:
    - `package.json` → npm/yarn/pnpm (JS/TS)
