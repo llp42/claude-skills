@@ -10,8 +10,10 @@ excluded — see `.gitignore`.
 ## Layout
 
 ```
-skills/<name>/SKILL.md   one directory per skill
-agents/<name>.md         one file per subagent
+skills/<name>/SKILL.md     one directory per skill
+skills/<name>/references/  bundled docs a skill reads on demand
+skills/<name>/assets/      bundled files a skill copies into a project
+agents/<name>.md           one file per subagent
 ```
 
 ## Skills
@@ -27,6 +29,7 @@ agents/<name>.md         one file per subagent
 | `docstring` | Add or fill in missing docstrings for a file or symbol. |
 | `env-lint` | Check `.env` parity against `.env.example` by variable name only, never values. |
 | `flaky-detector` | Find flaky tests by re-running the suite. |
+| `go-standards` | Lay out a Go project, configure golangci-lint v2, enforce gofumpt. |
 | `grilling` | Stress-test a plan or decision with relentless questioning. |
 | `grill-me` | A relentless interview to sharpen a plan or design. |
 | `lint-fix` | Run the project's linter/formatter and auto-fix. |
@@ -36,6 +39,9 @@ agents/<name>.md         one file per subagent
 
 `deps-doctor` and `deps-summary` are complementary: one audits current lockfile
 state regardless of any diff, the other only reports deltas already in a diff.
+
+`go-standards` carries its own copies of the Standard Go Project Layout,
+the golangci-lint v2 reference, and the gofumpt rule set, so it works offline.
 
 ## Agents
 

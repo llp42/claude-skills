@@ -1,0 +1,40 @@
+# GitHub Actions workflow for golangci-lint v2.
+# Copy to .github/workflows/golangci-lint.yml
+#
+# Lint and format run as separate steps so a formatting failure is immediately
+# distinguishable from a real finding.
+
+name: golangci-lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  # Required only if you turn on the action's `only-new-issues` option.
+  # pull-requests: read
+
+jobs:
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+
+      - name: lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          # Pin the version. An unpinned linter turns an unrelated PR red the
+          # day a new check ships.
+          version: v2.13
+
+      - name: format check
+        # Non-zero exit if anything is unformatted. Fix locally with
+        # `golangci-lint fmt`.
+        run: golangci-lint fmt --diff
