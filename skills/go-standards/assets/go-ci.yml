@@ -1,0 +1,76 @@
+# Build, test, and vulnerability workflow. Copy to .github/workflows/go-ci.yml.
+#
+# Linting and formatting live in golangci-lint.yml so a style failure is never
+# confused with a broken build. Both run on the same events.
+
+name: go
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  # A new push supersedes the run already in flight for the same ref.
+  group: go-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # The current release and the one before it. Testing both is what
+        # catches "works on my toolchain"; drop oldstable only if go.mod's
+        # `go` directive is newer than it.
+        os: [ubuntu-latest]
+        go: [stable, oldstable]
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: ${{ matrix.go }}
+          # setup-go caches the module and build caches keyed on go.sum.
+          cache: true
+
+      - name: go.mod and go.sum are up to date
+        run: go mod tidy -diff
+
+      - name: build
+        run: go build ./...
+
+      - name: vet
+        run: go vet ./...
+
+      - name: test
+        # -race is the point of running tests in CI at all; -shuffle exposes
+        # order dependence between tests in the same package.
+        run: go test -race -shuffle=on -covermode=atomic -coverprofile=coverage.out ./...
+
+      - name: upload coverage
+        if: matrix.go == 'stable'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.out
+
+  vuln:
+    name: govulncheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+
+      - name: govulncheck
+        # Reports only vulnerabilities actually reachable from this code, so a
+        # finding here is real work, not a version-range scare.
+        run: |
+          go run golang.org/x/vuln/cmd/govulncheck@latest ./...

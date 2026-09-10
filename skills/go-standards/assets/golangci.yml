@@ -13,6 +13,7 @@ run:
   go: "1.24"          # match the `go` directive in go.mod; the default is 1.17
   timeout: 5m         # the 1m default trips on large module graphs
   tests: true
+  modules-download-mode: readonly   # a lint run must never edit go.mod
 
 linters:
   # `standard` = errcheck, govet, ineffassign, staticcheck, unused.
@@ -21,18 +22,27 @@ linters:
 
   enable:
     # --- correctness -------------------------------------------------------
+    - asasalint               # []any passed to a variadic ...any parameter
     - bodyclose               # HTTP response bodies that are never closed
+    - canonicalheader         # non-canonical net/http.Header keys
     - contextcheck            # a function that drops the caller's context
     - copyloopvar             # pre-1.22 loop-variable copies, now redundant
     - durationcheck           # multiplying two Durations
+    - errchkjson              # types the json encoders cannot marshal
     - errorlint               # %v instead of %w, == instead of errors.Is
     - exhaustive              # enum switches missing a case
+    - exptostd                # golang.org/x/exp calls with a stdlib equivalent
+    - fatcontext              # context rebuilt inside a loop
     - forcetypeassert         # x.(T) without the ok form
+    - gocheckcompilerdirectives  # `// go:generate` and other silently-dead directives
     - makezero                # make([]T, n) then append
+    - mirror                  # the bytes API used on a string, and vice versa
     - musttag                 # struct marshalled without tags on every field
     - nilerr                  # `if err != nil { return nil }`
+    - nilnesserr              # err != nil, but a *different* nil error returned
     - noctx                   # requests built without a context
     - reassign                # assignment to a package-level var of another package
+    - recvcheck               # one type mixing pointer and value receivers
     - rowserrcheck            # sql.Rows.Err() never checked
     - sqlclosecheck           # unclosed sql.Rows / sql.Stmt
     - unconvert               # redundant type conversions
@@ -47,10 +57,16 @@ linters:
     - gocritic
     - misspell
     - modernize               # constructs with a newer stdlib equivalent
+    - nakedret                # naked returns in anything but a tiny function
     - predeclared             # shadowing `len`, `cap`, `new`, …
     - revive
+    - sloglint                # one calling style for log/slog
     - unparam                 # parameters and results that are always the same
     - usestdlibvars           # http.MethodGet instead of "GET"
+
+    # --- performance -------------------------------------------------------
+    - intrange                # `for i := range n` (1.22+)
+    - perfsprint              # fmt.Sprintf where strconv or concatenation works
 
     # --- tests -------------------------------------------------------------
     - testifylint             # swapped want/got, Equal on errors
@@ -62,8 +78,9 @@ linters:
     - nolintlint
 
     # Deliberately noisy. Enable one at a time, with a reason:
-    # - exhaustruct           # every struct literal must set every field
+    # - exhaustruct_v5        # every struct literal must set every field
     # - gochecknoglobals
+    # - gochecknoinits        # init() runs before main can decide anything
     # - ireturn               # return concrete types, accept interfaces
     # - lll
     # - funlen
@@ -71,6 +88,9 @@ linters:
     # - varnamelen
     # - wrapcheck             # wrap every error crossing a package boundary
     # - paralleltest          # every test must call t.Parallel()
+    # - testpackage           # tests live in package foo_test, using only the API
+    # - prealloc              # append in a loop over a known length
+    # - godoclint             # doc comments that do not follow godoc form
     # - depguard              # requires a `rules:` policy under settings
 
   settings:
@@ -95,7 +115,7 @@ linters:
       # `opinionated` and `experimental` are opt-in; add them once the rest is clean.
 
     revive:
-      enable-default-rules: true
+      enable-default-rules: true    # includes var-naming, error-strings, errorf, exported
       rules:
         - name: early-return
         - name: unnecessary-stmt
@@ -105,6 +125,8 @@ linters:
         - name: defer
         - name: context-as-argument
         - name: time-naming
+        - name: identical-branches
+        - name: modifies-value-receiver
         - name: package-comments
           disabled: true            # demands a doc comment on every package
 
@@ -117,6 +139,14 @@ linters:
 
     misspell:
       locale: US
+
+    nakedret:
+      max-func-lines: 5             # a naked return is only readable in a short function
+
+    sloglint:
+      no-mixed-args: true           # never mix key-value pairs and slog.Attr in one call
+      static-msg: true              # the message is a constant; the data goes in attrs
+      key-naming-case: snake        # one key vocabulary, so the logs are queryable
 
     nolintlint:
       require-explanation: true     # //nolint must say why

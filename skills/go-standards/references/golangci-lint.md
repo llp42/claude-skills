@@ -203,22 +203,24 @@ Rules that keep `nolint` honest:
 115 available in v2.13.2:
 
 ```
-arangolint asasalint asciicheck bidichk bodyclose canonicalheader clickhouselint
-containedctx contextcheck copyloopvar cyclop decorder depguard dogsled dupl
-dupword durationcheck embeddedstructfieldcheck errcheck errchkjson errname
-errorlint exhaustive exhaustruct exhaustruct_v5 exptostd fatcontext forbidigo
-forcetypeassert funcorder funlen ginkgolinter gocheckcompilerdirectives
-gochecknoglobals gochecknoinits gochecksumtype gocognit goconst gocritic gocyclo
-godoclint godot godox err113 goheader gomoddirectives gomodguard gomodguard_v2
-goprintffuncname gosec gosimple gosmopolitan govet grouper iface importas
-inamedparam ineffassign interfacebloat intrange iotamixing ireturn lll
-loggercheck maintidx makezero mirror misspell mnd modernize musttag nakedret
-nestif nilerr nilnesserr nilnil nlreturn noctx noinlineerr nolintlint
-nonamedreturns nosprintfhostport paralleltest perfsprint prealloc predeclared
-promlinter protogetter reassign recvcheck revive rowserrcheck sloglint
-sqlclosecheck staticcheck stylecheck tagalign tagliatelle testableexamples
-testifylint testpackage thelper tparallel unconvert unparam unused usestdlibvars
-usetesting varnamelen wastedassign whitespace wrapcheck wsl wsl_v5 zerologlint
+arangolint asasalint asciicheck bidichk bodyclose canonicalheader
+clickhouselint containedctx contextcheck copyloopvar cyclop decorder
+depguard dogsled dupl dupword durationcheck embeddedstructfieldcheck err113
+errcheck errchkjson errname errorlint exhaustive exhaustruct exhaustruct_v5
+exptostd fatcontext forbidigo forcetypeassert funcorder funlen ginkgolinter
+gocheckcompilerdirectives gochecknoglobals gochecknoinits gochecksumtype
+gocognit goconst gocritic gocyclo godoclint godot godox goheader
+gomoddirectives gomodguard gomodguard_v2 goprintffuncname gosec
+gosmopolitan govet grouper iface importas inamedparam ineffassign
+interfacebloat intrange iotamixing ireturn lll loggercheck maintidx
+makezero mirror misspell mnd modernize musttag nakedret nestif nilerr
+nilnesserr nilnil nlreturn noctx noinlineerr nolintlint nonamedreturns
+nosprintfhostport paralleltest perfsprint prealloc predeclared promlinter
+protogetter reassign recvcheck revive rowserrcheck sloglint spancheck
+sqlclosecheck staticcheck tagalign tagliatelle testableexamples testifylint
+testpackage thelper tparallel unconvert unparam unqueryvet unused
+usestdlibvars usetesting varnamelen wastedassign whitespace wrapcheck wsl
+wsl_v5 zerologlint
 ```
 
 Ones worth knowing when tuning a config:
@@ -244,13 +246,29 @@ Ones worth knowing when tuning a config:
 | `nolintlint` | `//nolint` without a linter name or without a reason. |
 | `depguard` | Imports you have banned by policy. |
 | `wrapcheck` | Errors from other packages returned without wrapping. |
+| `recvcheck` | One type with both pointer and value receivers. |
+| `nilerr` / `nilnesserr` | `return nil` after `err != nil`, and the wrong nil error returned. |
+| `sloglint` | Inconsistent `log/slog` calls — mixed args, formatted messages, ad-hoc key casing. |
+| `perfsprint` / `intrange` | `fmt.Sprintf` where `strconv` works; `for i := 0; i < n` where `range n` works. |
+| `exptostd` | `golang.org/x/exp` calls that the standard library now provides. |
+| `gocheckcompilerdirectives` | `// go:generate` and other directives that silently do nothing. |
+| `gomoddirectives` | `replace`, `retract`, and `exclude` you do not want shipped. |
 
-Deliberately noisy, opt in only with a reason: `exhaustruct`, `varnamelen`,
-`ireturn`, `gochecknoglobals`, `nlreturn`, `wsl`, `lll`, `funlen`, `godox`,
-`err113`, `dupl`, `cyclop`, `gocognit`, `maintidx`.
+Deliberately noisy, opt in only with a reason: `exhaustruct_v5`, `varnamelen`,
+`ireturn`, `gochecknoglobals`, `nlreturn`, `wsl_v5`, `lll`, `funlen`, `godox`,
+`err113`, `dupl`, `cyclop`, `gocognit`, `maintidx`, `noinlineerr`.
 
-Deprecated aliases kept for compatibility: `gosimple` and `stylecheck` are now
-part of `staticcheck`; `golint` is gone (use `revive`).
+Gone. `golangci-lint run` aborts with `unknown linters` if the config names one:
+`gosimple` and `stylecheck` (both absorbed into `staticcheck`), `golint` (use
+`revive`), `interfacer`, `maligned`, `scopelint`, `deadcode`, `structcheck`,
+`varcheck`.
+
+Superseded, still accepted but reported as deprecated on every run: `exhaustruct`
+→ `exhaustruct_v5`, `gomodguard` → `gomodguard_v2`, `wsl` → `wsl_v5`.
+
+`config verify` will not catch either case — it validates the config against the
+JSON schema, and the schema types `enable` as a list of strings. Only a real
+`run` resolves the names. Always follow `config verify` with one `run`.
 
 ## CI
 
