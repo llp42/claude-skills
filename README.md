@@ -62,7 +62,7 @@ hits, branch listings, raw log lines — out of the main conversation.
 Symlink into `~/.claude` so edits here take effect immediately:
 
 ```bash
-git clone git@github.com:llp-dev/claude-skills.git
+git clone git@github.com:llp42/claude-skills.git
 cd claude-skills
 ln -s "$PWD/skills" ~/.claude/skills
 ln -s "$PWD/agents" ~/.claude/agents
